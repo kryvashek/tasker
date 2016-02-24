@@ -1,13 +1,13 @@
 #include <iostream>
 
-#include "tarray.hpp"
+#include "tarrayitem.hpp"
 
 using namespace std;
 
 int main( void )
 	{
-	t_array_entry< int >	* entry = new t_array_entry< int >;
-	cout << entry->item << endl;
+	tArrayItem< int >	* entry = new tArrayItem< int >;
+	cout << entry->_value << endl;
 	delete entry;
 	return 0;
 	}
