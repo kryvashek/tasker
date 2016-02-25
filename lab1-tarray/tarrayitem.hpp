@@ -6,42 +6,40 @@ class tArrayItem
 	{
 	public:
 
-	typedef ValueType *					ValPtr;
-	typedef ValueType &					ValRef;
-	typedef tArrayItem< ValueType > *	ItemPtr;
-	typedef tArrayItem< ValueType > &	ItemRef;
+		typedef ValueType &				tValRef;
+		typedef tArrayItem< ValueType >	tItem;
 
 	private:  // this entries will be public only for debug reasons
 
-	ValueType	_value;
-	ItemPtr		_prev,
-				_next;
+		ValueType	_value;
+		tItem 		* _prev,
+					* _next;
 
 	public:
 
-	// default constructor
-	tArrayItem( void );
+		// default constructor
+		tArrayItem( void );
 
-	// copy constructor
-	tArrayItem( const ItemRef source );
+		// copy constructor
+		tArrayItem( const tItem & source );
 
-	// constructor by storing value
-	tArrayItem( const ValRef value, const ItemPtr prev, const ItemPtr next );
+		// constructor by storing value
+		tArrayItem( const tValRef value, const tItem * prev, const tItem * next );
 
-	// assignment operator
-	tArrayItem< ValueType > & operator=( const ItemRef source );
+		// assignment operator
+		tArrayItem< ValueType > & operator=( const tItem & source );
 
-	// method for accessing item value
-	inline ValueType & Get( void );
+		// method for accessing item value
+		inline ValueType & Get( void );
 
-	// getting next entry
-	inline ItemPtr Next( void );
+		// getting next entry
+		inline tItem * Next( void );
 
-	// getting previous entry
-	inline ItemPtr Previous( void );
+		// getting previous entry
+		inline tItem * Previous( void );
 
-	// destructor
-	~tArrayItem( void );
+		// destructor
+		~tArrayItem( void );
 	};
 
 // ========================================================= default constructor
@@ -54,7 +52,7 @@ tArrayItem< ValueType >::tArrayItem( void ) :
 
 // ============================================================ copy constructor
 template< class ValueType >
-tArrayItem< ValueType >::tArrayItem( const ItemRef source ) :
+tArrayItem< ValueType >::tArrayItem( const tItem & source ) :
 	_value( source._value ),
 	_prev( this ),
 	_next( this )
@@ -62,7 +60,7 @@ tArrayItem< ValueType >::tArrayItem( const ItemRef source ) :
 
 // ================================================ constructor by storing value
 template< class ValueType >
-tArrayItem< ValueType >::tArrayItem( const ValRef value, const ItemPtr prev, const ItemPtr next ) :
+tArrayItem< ValueType >::tArrayItem( const tValRef value, const tItem * prev, const tItem * next ) :
 	_value( value ),
 	_prev( prev ),
 	_next( next )
@@ -73,7 +71,7 @@ tArrayItem< ValueType >::tArrayItem( const ValRef value, const ItemPtr prev, con
 
 // ================================================== assignment opearator ( = )
 template< class ValueType >
-tArrayItem< ValueType > & tArrayItem< ValueType >::operator=( const ItemRef source )
+tArrayItem< ValueType > & tArrayItem< ValueType >::operator=( const tItem & source )
 	{
 	this->_value = source._value;
 	return *this;

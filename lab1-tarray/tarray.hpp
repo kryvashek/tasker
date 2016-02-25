@@ -7,133 +7,197 @@
 using	std::ostream;
 using	std::istream;
 
-template< class ValueType, typename CountType = int >
+template< class ValueType >
 class tArray
 	{
 	public:
 
-	typedef ValueType *							ValPtr;
-	typedef ValueType &							ValRef;
-	typedef tArray< ValueType, CountType > *	ArrPtr;
-	typedef tArray< ValueType, CountType > &	ArrRef;
-	typedef tArrayItem< ValueType > *			ItemPtr;
-	typedef tArrayItem< ValueType > &			ItemRef;
+		typedef ValueType &				tValRef;
+		typedef tArray< ValueType > &	tArrRef;
+		typedef tArrayItem< ValueType >	tItem;
+
+	private:
+
+		tItem * getItemWithIndex( const int index );
 
 	public: // this entries will be public only for debug reasons
 
-	const tArrayItem< ValueType >	_point;
-	CountType						_count;
+		tItem	_point,
+				* _temp;
+		int		_count,
+				_tempIdx;
 
-	// default constructor
-	tArray( void );
+	public:
 
-	// copy constructor
-	tArray( const ArrRef source );
+		// default constructor
+		tArray( void );
 
-	// length constructor
-	tArray( const CountType count );
+		// copy constructor
+		tArray( const tArrRef source );
 
-	// output operator
-	friend ostream< ValueType > & ostream< ValueType >::operator<<( const ArrRef array ) const;
+		// length constructor
+		tArray( const int count );
 
-	// input operator
-	friend istream< ValueType > & istream< ValueType >::operator>>( const ArrRef array );
+		// destructor
+		~tArray( void );
 
-	// index-access operator
-	ValRef operator[]( const CountType );
+		// item adding to the head method
+		tArrRef AddFront( const tValRef value );
 
-	// item adding method
-	ArrRef Add( const ValRef value );
+		// item adding to the tail method
+		tArrRef AddBack( const tValRef value );
 
-	// destructor
-	~tArray( void );
+		// item adding to the specified place method
+		tArrRef Insert( const tValRef value, const int number );
+
+		// index-access operator
+		tValRef operator[]( const int number );
+
+		// output operator
+		template< ValueType >
+		friend ostream & operator<<( ostream & output, const tArray < ValueType > & array );
+
+		// input operator
+		template< ValueType >
+		friend istream & operator>>( istream & input, const tArray < ValueType > & array );
 	};
 
 // ========================================================= default constructor
-template< class ValueType, typename CountType >
-tArray< ValueType, CountType >::tArray( void ) :
-	_count( reinterpret_cast< CountType >( 0 ) )
+template< class ValueType >
+tArray< ValueType >::tArray( void ) :
+	_temp( &_point ),
+	_count( 0 ),
+	_tempIdx( 0 )
 	{}
 
 // ============================================================ copy constructor
-template< class ValueType, typename CountType >
-tArray< ValueType, CountType >::tArray( const ArrRef source ) :
-	_count( source._count )
+template< class ValueType >
+tArray< ValueType >::tArray( const tArrRef source ) :
+	_temp( &_point ),
+	_count( source._count ),
+	_tempIdx( 0 )
 	{
-	CountType	counter;
+	for( _temp = source._point.Next(); _temp != &( source._point ); _temp = _temp->Next() )
+		this->AddBack( _temp->Get() );
 
-	for( counter = reinterpret_cast< CountType >( 1 ); counter <= _count; counter++ )
-		this->Add( source[ counter ] );
+	_temp = &_point;
 	}
 
 // ========================================================== length constructor
-template< class ValueType, typename CountType >
-tArray< ValueType, CountType >::tArray( const CountType count ) :
-	_count( count )
+template< class ValueType >
+tArray< ValueType >::tArray( const int count ) :
+	_temp( &_point ),
+	_count( count ),
+	_tempIdx( 0 )
 	{
-	ValueType	default_value;
-	CountType	counter;
+	ValueType	defaultValue;
+	int			counter;
 
-	for( counter = reinterpret_cast< CountType >( 1 ); counter <= _count; counter++ )
-		this->Add( default_value );
+	for( counter = 0; counter < _count; counter++ )
+		this->AddBack( defaultValue );
 	}
 
-// ============================================================= output operator
-template< class ValueType, typename CountType >
-ostream< ValueType > & ostream< ValueType >::operator<<( const tArray< ValueType, CountType > & array ) const
+// ================================================================== destructor
+template< class ValueType >
+tArray< ValueType >::~tArray( void )
 	{
-	CountType	counter;
+	while( _point.Next() != &_point )
+		delete _point.Next();
+	}
 
-	for( counter = reinterpret_cast< CountType >( 1 ); counter <= _count; counter++ )
-		*this << array[ counter ];
-
+// ============================================== item adding to the head method
+template< class ValueType >
+tArray< ValueType > & tArray< ValueType >::AddFront( const tValRef value )
+	{
+	new tArrayItem< ValueType >( value, &_point, &_point.Next() );
+	_count++;
 	return *this;
 	}
 
-// ============================================================== input operator
-template< class ValueType, typename CountType >
-istream< ValueType > & istream< ValueType >::operator>>( const tArray< ValueType, CountType > & array )
+// ============================================== item adding to the tail method
+template< class ValueType >
+tArray< ValueType > & tArray< ValueType >::AddBack( const tValRef value )
 	{
-	ValueType	temporary;
-	CountType	counter;
+	new tArrayItem< ValueType >( value, _point.Previous(), &_point );
+	_count++;
+	return *this;
+	}
 
-	for( counter = reinterpret_cast< CountType >( 1 ); counter <= _count; counter++ )
-		{
-		*this >> temporary;
-		array[ counter ] = temporary;
+// ======================================================== inner private method
+template< class ValueType >
+tArrayItem< ValueType > * tArray< ValueType >::getItemWithIndex( const int index )
+	{
+	tItem	* bgn;
+	tItem *	( tItem::*direction )( void );
+	int		bgnIdx, step, middle1 = _tempIdx / 2,
+			middle2 = ( _tempIdx + _count ) / 2;
+
+	if( middle1 <= index && index < middle2 )
+		{// начинаем искать от кэшированного положения
+		bgn = _temp;
+		bgnIdx = _tempIdx;
 		}
 
+	else
+		{// начинаем искать от фиктивного элемента
+		bgn = &_point;
+		bgnIdx = ( index < middle1 ) ? 0 : _count;
+		}
+
+	if( middle2 <= index || ( middle1 <= index && index < _tempIdx ) )
+		{// движемся в направлении "назад"
+		direction = &tItem::Previous;
+		step = -1;
+		}
+
+	else
+		{// движемся в направлении "вперёд"
+		direction = &tItem::Next;
+		step = 1;
+		}
+
+	for( _temp = bgn, _tempIdx = bgnIdx; _tempIdx != index; _tempIdx += step )
+		_temp = ( _temp->*direction )();
+
+	return _temp;
+	}
+
+// =================================== item adding to the specified place method
+template< class ValueType >
+tArray< ValueType > & tArray< ValueType >::Insert( const tValRef value, const int number )
+	{
+	tItem	* pre_item = getItemWithIndex( number - 1 );
+
+	new tArrayItem< ValueType >( value, pre_item, pre_item->Next() );
+	_count++;
 	return *this;
 	}
 
 // ================================================= index-access operator( [] )
-template< class ValueType, typename CountType >
-ValRef tArray< ValueType, CountType >::operator[]( const CountType number )
+template< class ValueType >
+ValueType & tArray< ValueType >::operator[]( const int number )
 	{
-	ItemPtr		item = &_point;
-	CountType	counter;
-
-	for( counter = reinterpret_cast< CountType >( 1 ); counter <= number; counter++ )
-		item = item->Next();
-
-	return item->Get();
+	return getItemWithIndex( number - 1 )->Get();
 	}
 
-// ========================================================== item adding method
-template< class ValueType, typename CountType >
-ArrRef tArray< ValueType, CountType >::Add( const ValRef value )
+// ============================================================= output operator
+template< class ValueType >
+ostream & operator<<( ostream & output, const tArray< ValueType > & array )
 	{
-	ItemPtr	item = new tArrayItem< ValueType >( value, _point.Previous(), &_point );
+	for( tArrayItem< ValueType > * item = array._point.Next(); item != &( array._point ); item = item->Next() )
+		output << item.Get() << ' ';
+
+	return output;
 	}
 
-// ================================================================== destructor
-template< class ValueType, typename CountType >
-tArray< ValueType, CountType >::~tArray( void )
+// ============================================================== input operator
+template< class ValueType >
+istream& operator>> ( istream & input, const tArray< ValueType > & array )
 	{
-	ItemRef	item = _point;
+	for( tArrayItem< ValueType > * item = array._point.Next(); item != &( array._point ); item = item->Next() )
+		input >> item.Get();
 
-	while( _point.Next() != &_point )
-		delete _point.Next();
+	return input;
 	}
 
 #endif /* _TARRAY_H_ */
