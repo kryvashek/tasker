@@ -11,7 +11,7 @@ class tArrayItem
 	typedef tArrayItem< ValueType > *	ItemPtr;
 	typedef tArrayItem< ValueType > &	ItemRef;
 
-	public:  // this entries will be public only for debug reasons
+	private:  // this entries will be public only for debug reasons
 
 	ValueType	_value;
 	ItemPtr		_prev,
@@ -22,20 +22,23 @@ class tArrayItem
 	// default constructor
 	tArrayItem( void );
 
-	// constructor by storing value
-	tArrayItem( const ValRef value, const ItemPtr prev, const ItemPtr next );
-
 	// copy constructor
 	tArrayItem( const ItemRef source );
 
+	// constructor by storing value
+	tArrayItem( const ValRef value, const ItemPtr prev, const ItemPtr next );
+
 	// assignment operator
-	const tArrayItem< ValueType > & operator=( const ItemRef source );
+	tArrayItem< ValueType > & operator=( const ItemRef source );
 
-	// comparison operator
-	const bool operator==( const ItemRef source );
+	// method for accessing item value
+	inline ValueType & Get( void );
 
-	// uncomparison opearator ( != )
-	inline const bool operator!=( const ItemRef source );
+	// getting next entry
+	inline ItemPtr Next( void );
+
+	// getting previous entry
+	inline ItemPtr Previous( void );
 
 	// destructor
 	~tArrayItem( void );
@@ -49,41 +52,52 @@ tArrayItem< ValueType >::tArrayItem( void ) :
 	_next( this )
 	{}
 
+// ============================================================ copy constructor
+template< class ValueType >
+tArrayItem< ValueType >::tArrayItem( const ItemRef source ) :
+	_value( source._value ),
+	_prev( this ),
+	_next( this )
+	{}
+
 // ================================================ constructor by storing value
 template< class ValueType >
 tArrayItem< ValueType >::tArrayItem( const ValRef value, const ItemPtr prev, const ItemPtr next ) :
 	_value( value ),
 	_prev( prev ),
 	_next( next )
-	{}
-
-// ============================================================ copy constructor
-template< class ValueType >
-tArrayItem< ValueType >::tArrayItem( const ItemRef source )
 	{
-	this->tArrayItem( source._value, source._prev, source._next );
+	_prev->_next = this;
+	_next->_prev = this;
 	}
 
 // ================================================== assignment opearator ( = )
 template< class ValueType >
-const tArrayItem< ValueType > & tArrayItem< ValueType >::operator=( const ItemRef source )
+tArrayItem< ValueType > & tArrayItem< ValueType >::operator=( const ItemRef source )
 	{
 	this->_value = source._value;
 	return *this;
 	}
 
-// ================================================= comparison opearator ( == )
+// ============================================= method for accessing item value
 template< class ValueType >
-const bool tArrayItem< ValueType >::operator==( const ItemRef source )
+inline ValueType & tArrayItem< ValueType >::Get( void )
 	{
-	return this->_value == source._value;
+	return _value;
 	}
 
-// =============================================== uncomparison opearator ( != )
+// ========================================================== getting next entry
 template< class ValueType >
-inline const bool tArrayItem< ValueType >::operator!=( const ItemRef source )
+inline tArrayItem< ValueType > * tArrayItem< ValueType >::Next( void )
 	{
-	return !( operator==( source ) );
+	return _next;
+	}
+
+// ====================================================== getting previous entry
+template< class ValueType >
+inline tArrayItem< ValueType > * tArrayItem< ValueType >::Previous( void )
+	{
+	return _prev;
 	}
 
 // ================================================================== destructor
