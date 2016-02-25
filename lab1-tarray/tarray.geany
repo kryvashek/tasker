@@ -22,10 +22,10 @@ long_line_behaviour=1
 long_line_column=80
 
 [files]
-current_page=2
-FILE_NAME_0=0;C++;0;EUTF-8;1;1;1;%2Fhome%2Fkryvashek%2FProjects%2FAiPOVK%2Fsemestr2%2Flab1-tarray%2Fmain.cpp;0;4
-FILE_NAME_1=0;C++;0;EUTF-8;1;1;1;%2Fhome%2Fkryvashek%2FProjects%2FAiPOVK%2Fsemestr2%2Flab1-tarray%2Ftarray.cpp;0;4
-FILE_NAME_2=0;C++;0;EUTF-8;1;1;1;%2Fhome%2Fkryvashek%2FProjects%2FAiPOVK%2Fsemestr2%2Flab1-tarray%2Ftarray.hpp;0;4
+current_page=1
+FILE_NAME_0=168;C++;0;EUTF-8;1;1;1;%2Fhome%2Fkryvashek%2FProjects%2FAiPOVK%2Fsemestr2%2Flab1-tarray%2Fmain.cpp;0;4
+FILE_NAME_1=888;C++;0;EUTF-8;1;1;1;%2Fhome%2Fkryvashek%2FProjects%2FAiPOVK%2Fsemestr2%2Flab1-tarray%2Ftarrayitem.hpp;0;4
+FILE_NAME_2=333;C++;0;EUTF-8;1;1;1;%2Fhome%2Fkryvashek%2FProjects%2FAiPOVK%2Fsemestr2%2Flab1-tarray%2Ftarray.hpp;0;4
 
 [VTE]
 last_dir=/home/kryvashek/Projects/AiPOVK/semestr2/lab1-tarray
