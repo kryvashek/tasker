@@ -37,5 +37,10 @@ int main( void )
 	array += 220;
 	cout << "array: " << array << endl;
 
+	tArray< int >	array3 = array & array2;
+	cout << "array3: " << array3 << endl;
+
+	array2 &= array;
+	cout << "array2: " << array2 << endl;
 	return 0;
 	}

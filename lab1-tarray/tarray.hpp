@@ -68,6 +68,12 @@ class tArray
 		// add-and-assign operator
 		tArray< ValueType > & operator+=( const ValueType & value );
 
+		// concatenate operator
+		const tArray< ValueType > operator&( const tArray< ValueType > & source ) const;
+
+		// concatenate-and-assign operator
+		tArray< ValueType > & operator&=( const tArray< ValueType > & source );
+
 		// output operator
 		friend ostream & operator<< <>( ostream & output, const tArray< ValueType > & array );
 
@@ -219,6 +225,25 @@ tArray< ValueType > & tArray< ValueType >::operator+=( const ValueType & value )
 	for( tmp = _point.Next(); tmp != &_point ; tmp = tmp->Next() )
 		tmp->Get() += value;
 
+	return *this;
+	}
+
+// ================================================== concatenate operator ( & )
+template< class ValueType >
+const tArray< ValueType > tArray< ValueType >::operator&( const tArray< ValueType > & source ) const
+	{
+	tArray< ValueType >	result( *this );
+	tArrayItem< ValueType >	* tmp;
+
+	result.addFrom( source );
+	return result;
+	}
+
+// ====================================== concatenate-and-assign operator ( &= )
+template< class ValueType >
+tArray< ValueType > & tArray< ValueType >::operator&=( const tArray< ValueType > & source )
+	{
+	addFrom( source );
 	return *this;
 	}
 
