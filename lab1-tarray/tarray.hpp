@@ -8,18 +8,27 @@ using	std::ostream;
 using	std::istream;
 
 template< class ValueType >
+class tArray;
+
+// pre-declaration of output operator
+template< class ValueType >
+ostream & operator<<( ostream & output, tArray< ValueType > const & array );
+
+// pre-declaration of input operator
+template< class ValueType >
+istream & operator>>( istream & input, tArray< ValueType > & array );
+
+template< class ValueType >
 class tArray
 	{
 	private:
 
+		tArrayItem< ValueType >	_point;
+		int	_count;
+
 		tArrayItem< ValueType > * getItemWithIndex( int index );
-
-	public: // this entries will be public only for debug reasons
-
-		tArrayItem< ValueType >	_point,
-				* _temp;
-		int		_count,
-				_tempIdx;
+		void cleanUp( void );
+		void addFrom( const tArray< ValueType > & source );
 
 	public:
 
@@ -50,44 +59,70 @@ class tArray
 		// index-access operator
 		ValueType & operator[]( const int number );
 
+		// assignment operator
+		tArray< ValueType > & operator=( const tArray< ValueType > & source );
+
 		// output operator
-		template< ValueType >
-		friend ostream & operator<<( ostream & output, const tArray < ValueType > & array );
+		friend ostream & operator<< <>( ostream & output, tArray< ValueType > const & array );
 
 		// input operator
-		template< ValueType >
-		friend istream & operator>>( istream & input, tArray < ValueType > & array );
+		friend istream & operator>> <>( istream & input, tArray< ValueType > & array );
 	};
+
+// ------------------------------------------- ( inner private ) clearing memory
+template< class ValueType >
+void tArray< ValueType >::cleanUp( void )
+	{
+	while( _point.Next() != &_point )
+		delete _point.Next();
+	}
+
+// --------------------------------------------- ( inner private ) finding place
+template< class ValueType >
+tArrayItem< ValueType > * tArray< ValueType >::getItemWithIndex( int index )
+	{
+	tArrayItem< ValueType >	* tmp;
+	int	idx;
+
+	for( index %= _count, tmp = _point.Next(), idx = 0; idx < index; idx++ )
+		tmp = tmp->Next();
+
+	return tmp;
+	}
+
+// -------------------------------------------- ( inner private ) copying values
+template< class ValueType >
+void tArray< ValueType >::addFrom( const tArray< ValueType > & source )
+	{
+	tArrayItem< ValueType >	* tmp;
+
+	for( tmp = source._point.Next(); tmp != &( source._point ); tmp = tmp->Next() )
+		this->AddBack( tmp->Get() );
+	}
 
 // ========================================================= default constructor
 template< class ValueType >
 tArray< ValueType >::tArray( void ) :
-	_temp( &_point ),
-	_count( 0 ),
-	_tempIdx( 0 )
+	_count( 0 )
 	{}
 
 // ============================================================ copy constructor
 template< class ValueType >
 tArray< ValueType >::tArray( const tArray< ValueType > & source ) :
-	_temp( &_point ),
-	_count( 0 ),  // will be increased during fullfilling
-	_tempIdx( 0 )
+	_count( 0 ) // will be increased during fullfilling
 	{
-	for( source._temp = source._point.Next(); source._temp != &( source._point ); source._temp = _temp->Next() )
-		this->AddBack( source._temp->Get() );
+	this->addFrom( source );
 	}
 
 // ========================================================== length constructor
 template< class ValueType >
 tArray< ValueType >::tArray( const int count ) :
-	_temp( &_point ),
-	_count( 0 ), // will be increased during fullfilling
-	_tempIdx( 0 )
+	_count( 0 ) // will be increased during fullfilling
 	{
 	ValueType	defaultValue( reinterpret_cast< ValueType >( 0 ) );
+	int	idx;
 
-	for( int counter = 0; counter < count; counter++ )
+	for( idx = 0; idx < count; idx++ )
 		this->AddBack( defaultValue );
 	}
 
@@ -95,8 +130,7 @@ tArray< ValueType >::tArray( const int count ) :
 template< class ValueType >
 tArray< ValueType >::~tArray( void )
 	{
-	while( _point.Next() != &_point )
-		delete _point.Next();
+	this->cleanUp();
 	}
 
 // ============================================== item adding to the head method
@@ -115,16 +149,6 @@ tArray< ValueType > & tArray< ValueType >::AddBack( const ValueType & value )
 	new tArrayItem< ValueType >( value, _point.Previous(), &_point );
 	_count++;
 	return *this;
-	}
-
-// ======================================================== inner private method
-template< class ValueType >
-tArrayItem< ValueType > * tArray< ValueType >::getItemWithIndex( int index )
-	{
-	for( index %= _count, _temp = _point.Next(), _tempIdx = 0; _tempIdx < index; _tempIdx++ )
-		_temp = _temp->Next();
-
-	return _temp;
 	}
 
 // =================================== item adding to the specified place method
@@ -151,19 +175,30 @@ int tArray< ValueType >::Size( void ) const
 	return _count;
 	}
 
-// ================================================= index-access operator( [] )
+// ================================================ index-access operator ( [] )
 template< class ValueType >
 ValueType & tArray< ValueType >::operator[]( const int number )
 	{
 	return getItemWithIndex( number )->Get();
 	}
 
+// =================================================== assignment operator ( = )
+template< class ValueType >
+tArray< ValueType > & tArray< ValueType >::operator=( const tArray< ValueType > & source )
+	{
+	this->cleanUp();
+	_count = 0;
+	this->addFrom( source );
+	}
+
 // ============================================================= output operator
 template< class ValueType >
-ostream & operator<<( ostream & output, const tArray< ValueType > & array )
+ostream & operator<<( ostream & output, tArray< ValueType > const & array )
 	{
-	for( tArrayItem< ValueType > * item = array._point.Next(); item != &( array._point ); item = item->Next() )
-		output << item->Get() << ' ';
+	tArrayItem< ValueType >	* tmp;
+
+	for( tmp = array._point.Next(); tmp != &( array._point ); tmp = tmp->Next() )
+		output << tmp->Get() << ' ';
 
 	return output;
 	}
@@ -172,8 +207,10 @@ ostream & operator<<( ostream & output, const tArray< ValueType > & array )
 template< class ValueType >
 istream & operator>>( istream & input, tArray< ValueType > & array )
 	{
-	for( tArrayItem< ValueType > * item = array._point.Next(); item != &( array._point ); item = item->Next() )
-		input >> item->Get();
+	tArrayItem< ValueType >	* tmp;
+
+	for( tmp = array._point.Next(); tmp != &( array._point ); tmp = tmp->Next() )
+		input >> tmp->Get();
 
 	return input;
 	}
