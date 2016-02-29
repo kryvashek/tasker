@@ -12,7 +12,7 @@ class tArray;
 
 // pre-declaration of output operator
 template< class ValueType >
-ostream & operator<<( ostream & output, tArray< ValueType > const & array );
+ostream & operator<<( ostream & output, const tArray< ValueType > & array );
 
 // pre-declaration of input operator
 template< class ValueType >
@@ -62,8 +62,14 @@ class tArray
 		// assignment operator
 		tArray< ValueType > & operator=( const tArray< ValueType > & source );
 
+		// adding operator
+		const tArray< ValueType > operator+( const ValueType & value ) const;
+
+		// add-and-assign operator
+		tArray< ValueType > & operator+=( const ValueType & value );
+
 		// output operator
-		friend ostream & operator<< <>( ostream & output, tArray< ValueType > const & array );
+		friend ostream & operator<< <>( ostream & output, const tArray< ValueType > & array );
 
 		// input operator
 		friend istream & operator>> <>( istream & input, tArray< ValueType > & array );
@@ -191,9 +197,34 @@ tArray< ValueType > & tArray< ValueType >::operator=( const tArray< ValueType > 
 	this->addFrom( source );
 	}
 
+// ======================================================= adding operator ( + )
+template< class ValueType >
+const tArray< ValueType > tArray< ValueType >::operator+( const ValueType & value ) const
+	{
+	tArray< ValueType >	result( *this );
+	tArrayItem< ValueType >	* tmp;
+
+	for( tmp = result._point.Next(); tmp != &( result._point ); tmp = tmp->Next() )
+		tmp->Get() += value;
+
+	return result;
+	}
+
+// ============================================== add-and-assign operator ( += )
+template< class ValueType >
+tArray< ValueType > & tArray< ValueType >::operator+=( const ValueType & value )
+	{
+	tArrayItem< ValueType >	* tmp;
+
+	for( tmp = _point.Next(); tmp != &_point ; tmp = tmp->Next() )
+		tmp->Get() += value;
+
+	return *this;
+	}
+
 // ============================================================= output operator
 template< class ValueType >
-ostream & operator<<( ostream & output, tArray< ValueType > const & array )
+ostream & operator<<( ostream & output, const tArray< ValueType > & array )
 	{
 	tArrayItem< ValueType >	* tmp;
 
