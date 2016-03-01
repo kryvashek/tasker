@@ -85,6 +85,8 @@ class tArray
 template< class ValueType >
 void tArray< ValueType >::cleanUp( void )
 	{
+	_count = 0;
+
 	while( _point.Next() != &_point )
 		delete _point.Next();
 	}
@@ -199,7 +201,6 @@ template< class ValueType >
 tArray< ValueType > & tArray< ValueType >::operator=( const tArray< ValueType > & source )
 	{
 	this->cleanUp();
-	_count = 0;
 	this->addFrom( source );
 	}
 
