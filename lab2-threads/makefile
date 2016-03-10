@@ -8,15 +8,15 @@ all: productor
 clean:
 	rm -rf ./*.o ./*.a
 
-productor: productor.o cortege.a
-	$(CMPLR) $(OPTS) productor.o cortege.a -o productor
+productor: productor.o kit.a
+	$(CMPLR) $(OPTS) productor.o kit.a -o productor
 
 productor.o: main.cpp
 	$(CMPLR) $(OPTS) -c main.cpp -o productor.o
 
-cortege.a: cortege.o
-	ar cr cortege.a cortege.o
-	ranlib cortege.a
+kit.a: kit.o
+	ar cr kit.a kit.o
+	ranlib kit.a
 
-cortege.o: cortege.cpp cortege.hpp
-	$(CMPLR) $(OPTS) -c cortege.cpp -o cortege.o
+kit.o: kit.cpp kit.hpp
+	$(CMPLR) $(OPTS) -c kit.cpp -o kit.o

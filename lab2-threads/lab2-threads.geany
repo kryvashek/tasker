@@ -15,17 +15,19 @@ indent_mode=2
 [project]
 name=lab2-threads
 base_path=/home/kryvashek/Projects/aipovk/semestr2/lab2-threads
+description=
 
 [long line marker]
 long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=1
-FILE_NAME_0=141;Make;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fmakefile;0;4
-FILE_NAME_1=391;C++;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fmain.cpp;0;4
-FILE_NAME_2=443;C;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fcortege.hpp;0;4
-FILE_NAME_3=24;C++;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fcortege.cpp;0;4
+current_page=4
+FILE_NAME_0=369;Make;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fmakefile;0;4
+FILE_NAME_1=289;C++;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fmain.cpp;0;4
+FILE_NAME_2=746;C;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fkit.hpp;0;4
+FILE_NAME_3=13;C++;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fkit.cpp;0;4
+FILE_NAME_4=375;C++;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fthreadarmy.hpp;0;4
 
 [VTE]
 last_dir=/home/kryvashek/Projects/aipovk/semestr2/lab2-threads
