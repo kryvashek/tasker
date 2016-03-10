@@ -1,19 +1,17 @@
 #include <iostream>
-#include <thread>
-#include <list>
-#include "cortege.hpp"
+#include "kit.hpp"
 
 using std::endl;
 using std::cout;
-using std::thread;
-using std::move;
 using std::fstream;
 
 int main( void )
 	{
 	//fstream		input( "input.txt", fstream::in );
 	int			n;
-	CortegeT	cortege;
+	KitT	cortege;
+
+	KitPairProdT lambda = []( KitPairT & pair )-> ItemT { return *pair.first + *pair.second; };
 
 	std::cin >> n;
 
