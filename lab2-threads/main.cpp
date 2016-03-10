@@ -1,19 +1,29 @@
 #include <iostream>
 #include <thread>
+#include <list>
+#include "cortege.hpp"
 
 using std::endl;
 using std::cout;
 using std::thread;
-
-void say_smth( void )
-	{
-	cout << "First step of coding" << endl;
-	return;
-	}
+using std::move;
+using std::fstream;
 
 int main( void )
 	{
-	thread	t( say_smth );
-	t.join();
+	//fstream		input( "input.txt", fstream::in );
+	int			n;
+	CortegeT	cortege;
+
+	std::cin >> n;
+
+	for( int i = 0; i < n; i++ )
+		std::cin >> cortege;
+
+	cout << cortege << endl;
+
+	//thread	t( say_smth );
+	//t.join();
+
 	return 0;
 	}
