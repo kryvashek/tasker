@@ -8,15 +8,8 @@ all: productor
 clean:
 	rm -rf ./*.o ./*.a
 
-productor: productor.o kit.a
+productor: productor.o
 	$(CMPLR) $(OPTS) productor.o kit.a -o productor
 
-productor.o: main.cpp
+productor.o: main.cpp threadarmy.hpp kit.hpp
 	$(CMPLR) $(OPTS) -c main.cpp -o productor.o
-
-kit.a: kit.o
-	ar cr kit.a kit.o
-	ranlib kit.a
-
-kit.o: kit.cpp kit.hpp
-	$(CMPLR) $(OPTS) -c kit.cpp -o kit.o
