@@ -22,11 +22,11 @@ long_line_behaviour=1
 long_line_column=72
 
 [files]
-current_page=4
+current_page=2
 FILE_NAME_0=369;Make;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fmakefile;0;4
-FILE_NAME_1=289;C++;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fmain.cpp;0;4
-FILE_NAME_2=746;C;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fkit.hpp;0;4
-FILE_NAME_3=13;C++;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fkit.cpp;0;4
+FILE_NAME_1=274;C++;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fmain.cpp;0;4
+FILE_NAME_2=673;C;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fkit.hpp;0;4
+FILE_NAME_3=896;C++;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fkit.cpp;0;4
 FILE_NAME_4=375;C++;0;EUTF-8;1;1;0;%2Fhome%2Fkryvashek%2FProjects%2Faipovk%2Fsemestr2%2Flab2-threads%2Fthreadarmy.hpp;0;4
 
 [VTE]
