@@ -9,7 +9,7 @@ clean:
 	rm -rf ./*.o ./*.a
 
 productor: productor.o
-	$(CMPLR) $(OPTS) productor.o kit.a -o productor
+	$(CMPLR) $(OPTS) productor.o -o productor
 
-productor.o: main.cpp threadarmy.hpp kit.hpp
+productor.o: main.cpp threadarmy.hpp
 	$(CMPLR) $(OPTS) -c main.cpp -o productor.o
