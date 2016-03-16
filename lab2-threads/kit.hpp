@@ -1,29 +1,31 @@
 #ifndef _KIT_H_
 #define _KIT_H_
 
-#include <functional>
 #include <algorithm>
 #include <iostream>
-#include <utility>
-#include <list>
+#include <vector>
 
-using std::function;
 using std::for_each;
 using std::istream;
 using std::ostream;
-using std::list;
-using std::pair;
-
-typedef float								ItemT;
-typedef list< ItemT >						KitT;
-typedef KitT::iterator						KitPosT;
-typedef pair< KitPosT, KitPosT >			KitPairT;
-typedef function< ItemT ( KitPairT & ) >	KitPairProdT;
 
 // gets one value of Kit entry type and puts it to the end of given Kit
-istream & operator>>( istream & input, KitT & destination );
+template< class StorageT >
+istream & operator>>( istream & input, StorageT & destination )
+	{
+	static typename StorageT::value_type	value;
+
+	input >> value;
+	destination.push_back( value );
+	return input;
+	}
 
 // prints values from given Kit one-by-one in striaght order
-ostream & operator<<( ostream & output, KitT & source );
+template< class StorageT >
+ostream & operator<<( ostream & output, StorageT & source )
+	{
+	for_each( source.begin(), source.end(), [ &output ]( typename StorageT::value_type & value ){ output << value << " "; } );
+	return output;
+	}
 
 #endif // _KIT_H_

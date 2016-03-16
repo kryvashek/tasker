@@ -1,27 +1,30 @@
-#include <iostream>
+#include <fstream>
 #include "kit.hpp"
+#include "threadarmy.hpp"
 
 using std::endl;
 using std::cout;
 using std::fstream;
 
+typedef float			ItemT;
+typedef vector< ItemT >	KitT;
+
 int main( void )
 	{
-	//fstream		input( "input.txt", fstream::in );
-	int			n;
-	KitT	cortege;
+	ThreadArmy< ItemT, KitT >	army;
+	fstream						input( "input.txt", fstream::in );
+	KitT	cortege1, cortege2;
+	int		i, n;
 
-	KitPairProdT lambda = []( KitPairT & pair )-> ItemT { return *pair.first + *pair.second; };
+	input >> n;
 
-	std::cin >> n;
+	for( i = 0; i < n; i++ )
+		input >> cortege1;
 
-	for( int i = 0; i < n; i++ )
-		std::cin >> cortege;
+	for( i = 0; i < n; i++ )
+		input >> cortege2;
 
-	cout << cortege << endl;
-
-	//thread	t( say_smth );
-	//t.join();
-
+	army.Execute( cortege1, cortege2, n );
+	cout << army.Stop() << endl;
 	return 0;
 	}
