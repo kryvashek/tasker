@@ -1,6 +1,15 @@
 #ifndef _THREADARMY_H_
 #define _THREADARMY_H_
 
+#include <iostream>
+#include <istream>
+#include <ostream>
+
+using std::cout;
+using std::endl;
+using std::istream;
+using std::ostream;
+
 #include <vector>
 #include <thread>
 
@@ -44,7 +53,7 @@ const int ThreadArmy< ItemT, StorageT >::calcThreadsCount( void ) const
 template< typename ItemT, class StorageT >
 ThreadArmy< ItemT, StorageT >::ThreadArmy( void ) :
 	_threadsCount( calcThreadsCount() ),
-	_sumResult( 0 ),
+	_sumResult( static_cast< ItemT >( 0 ) ),
 	_isWorking( false )
 	{
 	_threads.reserve( _threadsCount );
@@ -55,7 +64,7 @@ ThreadArmy< ItemT, StorageT >::ThreadArmy( void ) :
 template< typename ItemT, class StorageT >
 ThreadArmy< ItemT, StorageT >::ThreadArmy( const StorageT & kitA, const StorageT & kitB, const int & length ) :
 	_threadsCount( calcThreadsCount() ),
-	_sumResult( 0 ),
+	_sumResult( static_cast< ItemT >( 0 ) ),
 	_isWorking( false )
 	{
 	_threads.reserve( _threadsCount );
@@ -74,24 +83,30 @@ ThreadArmy< ItemT, StorageT >::~ThreadArmy( void )
 template< typename ItemT, class StorageT >
 void ThreadArmy< ItemT, StorageT >::Execute( const StorageT & kitA, const StorageT & kitB, const int & length )
 	{
-	int 	part = ( length + _threadsCount - 1 ) / _threadsCount,
-			start = 0,
-			finish = part;
-
-	typename vector< ItemT >::iterator	resultPlace = _byThreadResults.begin();
-
-	_isWorking = true;
-
-	for( int i = 0; i < _threadsCount; i++, start += part, finish += part, resultPlace++ )
+	if( !_isWorking )
 		{
-		if( finish > length )
-			finish = length;
+		const int	part( ( length + _threadsCount - 1 ) / _threadsCount );
+		int			start = 0, finish = part, i;
 
-		_threads[ i ] = new thread( [ start, finish, resultPlace, kitA, kitB ]( void )
-										{
-										for( int j = start; j < finish; j++ )
-											*resultPlace += kitA[ j ] * kitB[ j ];
-										} );
+		typename vector< ItemT >::iterator	resultPlace;
+
+		for( i = 0; i < _threadsCount; i++ )
+			_byThreadResults[ i ] = static_cast< ItemT >( 0 );
+
+		resultPlace = _byThreadResults.begin();
+		_isWorking = true;
+
+		for( i = 0; i < _threadsCount; i++, start += part, finish += part, resultPlace++ )
+			{
+			if( finish > length )
+				finish = length;
+
+			_threads[ i ] = new thread( [ &, start, finish, resultPlace, kitA, kitB ]( void )
+											{
+											for( int j = start; j < finish; j++ )
+												*resultPlace += kitA[ j ] * kitB[ j ];
+											} );
+			}
 		}
 	}
 
@@ -101,6 +116,8 @@ const ItemT ThreadArmy< ItemT, StorageT >::Stop( void )
 	{
 	if( _isWorking )
 		{
+		_sumResult = static_cast< ItemT >( 0 );
+
 		for( int i = 0; i < _threadsCount; i++ )
 			{
 			if( _threads[ i ]->joinable() )
