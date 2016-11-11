@@ -2,23 +2,32 @@
 // Created by kryvashek on 10.11.16.
 //
 
-#include <fstream>
-#include <ThreadGuard.h>
+#include <iostream>
+#include <ThreadSquad.h>
 
-using	std::ofstream;
+using	std::cout;
 using	std::endl;
 
-void printSomeValues( int one, char two ) {
-	ofstream	output( "output.txt" );
-
-	output << "one = " << one << '\t' << "two = '" << two << "'" << endl;
-}
 
 int main( int argc, char *argv[] ) {
-	ThreadGuard< int, char >	tg;
+	const size_t	count( 8 );
+	size_t 			index;
+	int 			ints[ count ] = { 0, 11111, 202020, 333, 4444, 55555, 666666, 77 },
+					* one = ints;
+	char 			chars[ count ] = { 'A', '!', 'e', '0', '|', '=', '6', 'F' },
+					* two = chars;
+	ThreadSquad		squad( 2 );
 
-	tg.Set( printSomeValues );
-	tg.Run( 789, 'R' );
+	for( index = 0; index < count; index++, one++, two++ )
+		squad.Tasks.push( [ &, one, two, index ]( void ) {
+			timespec period{ .tv_sec = 3 + index % 2, .tv_nsec = 0 };
+
+			nanosleep( &period, NULL );
+			cout << index << ") one = " << *one << "\t two = '" << *two << '\'' << endl;
+		} );
+
+	squad.Run();
+	squad.Stop( true );
 
 	return 0;
 }
