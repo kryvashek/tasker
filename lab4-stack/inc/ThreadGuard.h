@@ -10,6 +10,7 @@
 
 using	std::thread;
 using	std::function;
+using	std::move;
 
 template< class... Types >
 class ThreadGuard {
@@ -55,10 +56,10 @@ ThreadGuard< Types ... >::ThreadGuard( const Routine & routine, const bool run )
 
 template< class... Types >
 ThreadGuard< Types ... >::ThreadGuard( ThreadGuard && source ) :
-	_routine( source._routine ),
-	_performer( source._performer )
+	_routine( move( source._routine ) ),
+	_performer( move( source._performer ) )
 {
-	source._routine = ThreadGuard::_mock();
+	source._routine = move( ThreadGuard::_mock );
 	source._performer = NULL;
 }
 
@@ -69,9 +70,9 @@ ThreadGuard< Types ... >::~ThreadGuard( void ) {
 
 template< class... Types >
 ThreadGuard< Types ... > & ThreadGuard< Types ... >::operator=( ThreadGuard && source ) {
-	this->_routine = source._routine;
-	this->_performer = source._performer;
-	source._routine = ThreadGuard::_mock();
+	this->_routine = move( source._routine );
+	this->_performer = move( source._performer );
+	source._routine = move( ThreadGuard::_mock );
 	source._performer = NULL;
 	return *this;
 }
