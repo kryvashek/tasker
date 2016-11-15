@@ -31,9 +31,7 @@ private:
 	ThreadSquad & operator=( const ThreadSquad & source ) = delete;
 	static const size_t _threadsCount( void );
 	static const size_t _threadsCountOptimum( const size_t amount );
-	inline void _move( Squad & source, Squad::iterator & member, Squad & destination );
-	inline const bool _braking( void );
-	inline void _speedup( void );
+	inline void _move( Squad & source, Squad::iterator member, Squad & destination );
 
 public:
 	ThreadSquad( void );
@@ -57,31 +55,9 @@ const size_t ThreadSquad::_threadsCountOptimum( const size_t amount ) {
 	return optimal < amount ? optimal : amount;
 }
 
-inline void ThreadSquad::_move( Squad & source, Squad::iterator & member, Squad & destination ) {
+inline void ThreadSquad::_move( Squad & source, Squad::iterator member, Squad & destination ) {
 	destination.emplace_back( move( *member ) );
 	member = source.erase( member );
-}
-
-inline const bool ThreadSquad::_braking( void ) {
-	Squad::iterator	member;
-
-	for( member = this->_active.begin(); member != this->_active.end(); )
-		if( member->Stop() )
-			this->_move( this->_active, member, this->_passive );
-		else
-			member++;
-
-	return !this->Busy();
-}
-
-inline void ThreadSquad::_speedup( void ) {
-	Squad::iterator	member;
-
-	for( member = this->_passive.begin(); member != this->_passive.end() && !this->Tasks.empty(); ) {
-		member->Run( this->Tasks.front() );
-		this->_move( this->_passive, member, this->_active );
-		this->Tasks.pop();
-	}
 }
 
 ThreadSquad::ThreadSquad( void ) :
@@ -112,18 +88,48 @@ inline const bool ThreadSquad::Busy( void ) const {
 }
 
 void ThreadSquad::Run( void ) {
-	while( !this->Tasks.empty() ) {
-		this->_braking();
-		this->_speedup();
+	Squad::iterator	member;
+
+	while( !this->Tasks.empty() && !this->_passive.empty() ) {
+		this->_passive.begin()->Run( this->Tasks.front() );
+		this->Tasks.pop();
+		this->_move( this->_passive, this->_passive.begin(), this->_active );
 	}
+
+	member = this->_active.begin();
+
+	if( member != this->_active.end() )
+		while( !this->Tasks.empty() ) {
+			while( !member->Stop() ) {
+				member++;
+
+				if( member == this->_active.end() )
+					member = this->_active.begin();
+			}
+
+			member->Run( this->Tasks.front() );
+			this->Tasks.pop();
+		}
 }
 
 const bool ThreadSquad::Stop( const bool wait ) {
-	while( !this->_braking() )
-		if( !wait )
-			return false;
+	Squad::iterator	member;
+	bool 			finished( false );
 
-	return true;
+	while( !finished ) {
+		for( member = this->_active.begin(); member != this->_active.end(); )
+			if( member->Stop() )
+				this->_move( this->_active, member, this->_passive );
+			else
+				member++;
+
+		finished = !this->Busy();
+
+		if( !wait )
+			break;
+	}
+
+	return finished;
 }
 
 #endif //LAB4_STACK_THREADSQUAD_H
