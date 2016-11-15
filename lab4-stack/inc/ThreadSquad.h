@@ -8,6 +8,7 @@
 #include <queue>
 #include <vector>
 #include <list>
+#include <mutex>
 #include "ThreadGuard.h"
 
 using	std::queue;
@@ -17,30 +18,34 @@ class ThreadSquad {
 public:
 	typedef function< void( void ) >	Routine;
 
-	queue< Routine >	Tasks;
-
 private:
-	typedef ThreadGuard<>	Member;
-	typedef	list< Member >	Squad;
-	
-	const size_t	_amount;
-	Squad			_passive,
-					_active;
+	typedef ThreadGuard<>		Member;
+	typedef	list< Member >		Squad;
+	typedef queue< Routine >	Schedule;
+
+	Schedule	_tasks;
+	Squad		_team;
+	mutex		_tasksMutex;
 
 	ThreadSquad( const ThreadSquad & source ) = delete;
+	ThreadSquad( ThreadSquad && source ) = delete;
 	ThreadSquad & operator=( const ThreadSquad & source ) = delete;
+	ThreadSquad & operator=( ThreadSquad && source ) = delete;
+
 	static const size_t _threadsCount( void );
 	static const size_t _threadsCountOptimum( const size_t amount );
-	inline void _move( Squad & source, Squad::iterator member, Squad & destination );
+	inline const Routine _getTask( void );
+	inline const bool _hasTasks( void );
 
 public:
 	ThreadSquad( void );
 	ThreadSquad( const size_t amount, const bool optimize = false );
-	ThreadSquad( ThreadSquad && source );
 	~ThreadSquad( void );
-	inline const bool Busy( void ) const;
+	const bool Busy( void );
 	void Run( void );
-	const bool Stop( const bool wait = false );
+	const bool StopTry( void );
+	const bool StopWait( void );
+	void AddTask( const Routine & task );
 };
 
 const size_t ThreadSquad::_threadsCount( void ) {
@@ -55,81 +60,68 @@ const size_t ThreadSquad::_threadsCountOptimum( const size_t amount ) {
 	return optimal < amount ? optimal : amount;
 }
 
-inline void ThreadSquad::_move( Squad & source, Squad::iterator member, Squad & destination ) {
-	destination.emplace_back( move( *member ) );
-	member = source.erase( member );
+inline const ThreadSquad::Routine ThreadSquad::_getTask( void ) {
+	this->_tasksMutex.lock();
+	const Routine	temp( this->_tasks.front() );
+	this->_tasks.pop();
+	this->_tasksMutex.unlock();
+	return temp;
+}
+
+inline const bool ThreadSquad::_hasTasks( void ) {
+	this->_tasksMutex.lock();
+	const bool	temp( this->_tasks.empty() );
+	this->_tasksMutex.unlock();
+	return !temp;
 }
 
 ThreadSquad::ThreadSquad( void ) :
-	_amount( ThreadSquad::_threadsCount() ),
-	_passive( this->_amount )
+	_team( ThreadSquad::_threadsCount() )
 {}
 
 ThreadSquad::ThreadSquad( const size_t amount, const bool optimize ) :
-	_amount( optimize ? ThreadSquad::_threadsCountOptimum( amount ) : ThreadSquad::_threadsCount() ),
-	_passive( this->_amount )
+	_team( optimize ? ThreadSquad::_threadsCountOptimum( amount ) : amount )
 {}
 
-ThreadSquad::ThreadSquad( ThreadSquad && source ) :
-	_amount( source._amount ),
-	_passive( move( source._passive ) ),
-	_active( move( source._active ) )
-{
-	source._passive.clear();
-	source._active.clear();
-}
-
 ThreadSquad::~ThreadSquad( void ) {
-	this->Stop( true );
+	this->StopWait();
 }
 
-inline const bool ThreadSquad::Busy( void ) const {
-	return !this->_active.empty();
+const bool ThreadSquad::Busy( void ) {
+	Squad::iterator	member;
+	size_t 			count( 0 );
+
+	for( member = this->_team.begin(); member !=  this->_team.end(); member++ )
+		if( !member->StopTry() )
+			count++;
+
+	return count > 0;
 }
 
 void ThreadSquad::Run( void ) {
 	Squad::iterator	member;
 
-	while( !this->Tasks.empty() && !this->_passive.empty() ) {
-		this->_passive.begin()->Run( this->Tasks.front() );
-		this->Tasks.pop();
-		this->_move( this->_passive, this->_passive.begin(), this->_active );
-	}
-
-	member = this->_active.begin();
-
-	if( member != this->_active.end() )
-		while( !this->Tasks.empty() ) {
-			while( !member->Stop() ) {
-				member++;
-
-				if( member == this->_active.end() )
-					member = this->_active.begin();
-			}
-
-			member->Run( this->Tasks.front() );
-			this->Tasks.pop();
-		}
+	for( member = this->_team.begin(); member !=  this->_team.end(); member++ )
+		member->Run( [ this ]( void ) mutable {
+			while( this->_hasTasks() )
+				this->_getTask()();
+		} );
 }
 
-const bool ThreadSquad::Stop( const bool wait ) {
-	Squad::iterator	member;
-	bool 			finished( false );
+const bool ThreadSquad::StopTry( void ) {
+	return !this->Busy();
+}
 
-	while( !finished ) {
-		for( member = this->_active.begin(); member != this->_active.end(); )
-			if( member->Stop() )
-				this->_move( this->_active, member, this->_passive );
-			else
-				member++;
+const bool ThreadSquad::StopWait( void ) {
+	while( this->Busy() );
 
-		finished = !this->Busy();
+	return true;
+}
 
-		if( !wait )
-			break;
-	}
-
-	return finished;
+void ThreadSquad::AddTask( const Routine & task ) {
+	this->_tasksMutex.lock();
+	this->_tasks.push( task );
+	this->_tasksMutex.unlock();
 }
 
 #endif //LAB4_STACK_THREADSQUAD_H
