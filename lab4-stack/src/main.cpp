@@ -8,26 +8,53 @@
 using	std::cout;
 using	std::endl;
 
+__time_t getMoment( void ) {
+	struct timespec			moment;
+
+	clock_gettime( CLOCK_MONOTONIC, &moment );
+	return moment.tv_sec;
+}
+
+void someFunc( char a, __time_t value ) {
+	timespec period{ .tv_sec = 3, .tv_nsec = 0 };
+
+	cout << a << " started: " << getMoment() - value << endl;
+	nanosleep( &period, NULL );
+	cout << a << " finished: " << getMoment() - value << endl;
+}
 
 int main( int argc, char *argv[] ) {
-	const size_t	count( 8 );
-	size_t 			index;
-	int 			ints[ count ] = { 0, 11111, 202020, 333, 4444, 55555, 666666, 77 },
-					* one = ints;
-	char 			chars[ count ] = { 'A', '!', 'e', '0', '|', '=', '6', 'F' },
-					* two = chars;
-	ThreadSquad		squad( 2 );
+	const __time_t	allStart( getMoment() );
+	const int		count( 8 );
+	int 			index;
 
-	for( index = 0; index < count; index++, one++, two++ )
-		squad.Tasks.push( [ &, one, two, index ]( void ) {
-			timespec period{ .tv_sec = 3 + index % 2, .tv_nsec = 0 };
+	ThreadGuard< char, __time_t >	guard( someFunc );
+	ThreadSquad						squad( 2 );
 
+	guard.Run( '0', allStart );
+
+	for( index = 0; index < count; index++ )
+		squad.AddTask( [ index, allStart ]( void ) {
+			timespec period{ .tv_sec = ( 5 + ( index % 2 ) * 3 ), .tv_nsec = 0 };
+
+			cout << index + 1 << " started: " << getMoment() - allStart << endl;
 			nanosleep( &period, NULL );
-			cout << index << ") one = " << *one << "\t two = '" << *two << '\'' << endl;
+			cout << index + 1 << " finished: " << getMoment() - allStart << endl;
 		} );
-
 	squad.Run();
-	squad.Stop( true );
+	squad.StopWait();
+
+	guard.StopWait();
+	guard.Set( []( char a, __time_t value ) {
+		timespec period{ .tv_sec = 3, .tv_nsec = 0 };
+
+		cout << a << " started: " << getMoment() - value << endl;
+		nanosleep( &period, NULL );
+		cout << a << " finished: " << getMoment() - value << endl;
+	} );
+	guard.Run( '9', allStart );
+
+	cout << "All got: " << getMoment() - allStart << endl;
 
 	return 0;
 }
