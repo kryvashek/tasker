@@ -16,12 +16,12 @@ using	std::list;
 
 class ThreadSquad {
 public:
-	typedef function< void( void ) >	Routine;
+	typedef function< void( void ) >	Task;
 
 private:
-	typedef ThreadGuard<>		Member;
-	typedef	list< Member >		Squad;
-	typedef queue< Routine >	Schedule;
+	typedef ThreadGuard<>	Member;
+	typedef	list< Member >	Squad;
+	typedef queue< Task >	Schedule;
 
 	Schedule	_tasks;
 	Squad		_team;
@@ -34,7 +34,7 @@ private:
 
 	static const size_t _threadsCount( void );
 	static const size_t _threadsCountOptimum( const size_t amount );
-	inline const Routine _getTask( void );
+	inline const Task _getTask( void );
 	inline const bool _hasTasks( void );
 
 public:
@@ -45,7 +45,7 @@ public:
 	void Run( void );
 	const bool StopTry( void );
 	const bool StopWait( void );
-	void AddTask( const Routine & task );
+	void AddTask( const Task & task );
 };
 
 const size_t ThreadSquad::_threadsCount( void ) {
@@ -60,9 +60,9 @@ const size_t ThreadSquad::_threadsCountOptimum( const size_t amount ) {
 	return optimal < amount ? optimal : amount;
 }
 
-inline const ThreadSquad::Routine ThreadSquad::_getTask( void ) {
+inline const ThreadSquad::Task ThreadSquad::_getTask( void ) {
 	this->_tasksMutex.lock();
-	const Routine	temp( this->_tasks.front() );
+	const Task	temp( this->_tasks.front() );
 	this->_tasks.pop();
 	this->_tasksMutex.unlock();
 	return temp;
@@ -118,7 +118,7 @@ const bool ThreadSquad::StopWait( void ) {
 	return true;
 }
 
-void ThreadSquad::AddTask( const Routine & task ) {
+void ThreadSquad::AddTask( const Task & task ) {
 	this->_tasksMutex.lock();
 	this->_tasks.push( task );
 	this->_tasksMutex.unlock();
