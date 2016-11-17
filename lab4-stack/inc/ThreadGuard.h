@@ -144,7 +144,7 @@ template< class... Types >
 void ThreadGuard< Types ... >::Run( Types ... values ) {
 	if( !this->Busy() ) {
 		this->_setEnded( false );
-		this->_worker = new Worker( [ &, this, values ... ]( void ) mutable {
+		this->_worker = new Worker( [ & ]( void ) mutable {
 			this->_duty( values ... );
 			this->_setEnded( true );
 		} );
