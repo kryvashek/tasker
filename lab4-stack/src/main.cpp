@@ -5,6 +5,7 @@
 #include <iostream>
 #include <ThreadSquad.h>
 #include <Executor.h>
+#include <SafeStack.h>
 
 using	std::cout;
 using	std::endl;
@@ -69,6 +70,20 @@ int main( int argc, char *argv[] ) {
 
 	executor.AddRoutine( "write", write );
 	executor.Run();
+
+	SafeStack< int >	locker;
+
+	for( int i = 0; i < 10; i++ ) {
+		cout << ( 2 * i + 1 ) << " ";
+		locker.push( 2 * i + 1 );
+	}
+
+	cout << endl;
+
+	while( !locker.empty() ) {
+		cout << locker.top() << " ";
+		locker.pop();
+	}
 
 	return 0;
 }
