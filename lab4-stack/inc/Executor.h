@@ -34,8 +34,8 @@ private:
 
 	Executor( const Executor & source ) = delete;
 	Executor( Executor && source ) = delete;
-	Executor & operator=( const Executor & source ) = delete;
 	Executor & operator=( Executor && source ) = delete;
+
 	const struct timespec _getMoment( void ) const;
 	void _report( const string & message );
 
@@ -43,6 +43,8 @@ public:
 	Executor( void );
 	Executor( istream & input, ostream & output );
 	~Executor( void );
+	const Executor & operator=( const Executor & source );
+	const Executor & operator+=( const Executor & source );
 	void AddRoutine( const string & id, const Routine & routine );
 	void SetInput( istream & input );
 	void SetOutput( ostream & output );
@@ -56,7 +58,7 @@ const struct timespec Executor< ResType, ArgTypes... >::_getMoment( void ) const
 
 	clock_gettime( CLOCK_REALTIME, &moment );
 	return moment;
-};
+}
 
 template< typename ResType, class... ArgTypes >
 void Executor< ResType, ArgTypes... >::_report( const string & message ) {
@@ -94,7 +96,20 @@ template< typename ResType, class... ArgTypes >
 Executor< ResType, ArgTypes... >::~Executor( void ) {
 	this->_report( "Destructing executor" );
 	this->_output.flush();
-};
+}
+
+template< typename ResType, class... ArgTypes >
+const Executor< ResType, ArgTypes... > & Executor< ResType, ArgTypes... >::operator=( const Executor & source ) {
+	this->_scope = source._scope;
+}
+
+template< typename ResType, class... ArgTypes >
+const Executor< ResType, ArgTypes... > & Executor< ResType, ArgTypes... >::operator+=( const Executor & source ) {
+	Coverage::const_iterator	from;
+
+	for( from = source._scope.begin(); from != source._scope.end(); from++ )
+		this->_scope[ from->first ] = from->second;
+}
 
 template< typename ResType, class... ArgTypes >
 void Executor< ResType, ArgTypes... >::AddRoutine( const string & id, const Routine & routine ) {
@@ -136,6 +151,6 @@ void Executor< ResType, ArgTypes... >::Run( ArgTypes ... values ) {
 		if( temp == "exit" )
 			break;
 	}
-};
+}
 
 #endif //LAB4_STACK_EXECUTOR_H
