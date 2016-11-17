@@ -114,21 +114,21 @@ const Executor< ResType, ArgTypes... > & Executor< ResType, ArgTypes... >::opera
 template< typename ResType, class... ArgTypes >
 void Executor< ResType, ArgTypes... >::AddRoutine( const string & id, const Routine & routine ) {
 	this->_scope[ id ] = routine;
-	this->_report( "New routine '" + id + "' set" );
+	this->_report( "Set '" + id + "'" );
 }
 
 template< typename ResType, class... ArgTypes >
 void Executor< ResType, ArgTypes... >::SetInput( istream & input ) {
 	this->_input = input;
-	this->_report( "Input stream changed" );
+	this->_report( "Input changed" );
 }
 
 template< typename ResType, class... ArgTypes >
 void Executor< ResType, ArgTypes... >::SetOutput( ostream & output ) {
-	this->_report( "Changing output stream" );
+	this->_report( "Changing output" );
 	this->_output.flush();
 	this->_output = output;
-	this->_report( "Output stream changed" );
+	this->_report( "Output changed" );
 }
 
 template< typename ResType, class... ArgTypes >
@@ -141,11 +141,11 @@ void Executor< ResType, ArgTypes... >::Run( ArgTypes ... values ) {
 		this->_input >> temp;
 
 		if( 0 == this->_scope.count( temp ) )
-			this->_report( "Unknown lexeme '" + temp + "'" );
+			this->_report( "Unknown '" + temp + "'" );
 		else {
 			message.clear();
 			result = this->_scope[ temp ]( this->_input, message, values ... );
-			this->_report( "Completed '" + temp + "', " + std::to_string( result ) + ", " + message );
+			this->_report( "'" + temp + "', " + std::to_string( result ) + ", " + message );
 		}
 
 		if( temp == "exit" )
