@@ -145,7 +145,11 @@ void Executor< ResType, ArgTypes... >::Run( ArgTypes ... values ) {
 		else {
 			message.clear();
 			result = this->_scope[ temp ]( this->_input, message, values ... );
-			this->_report( "'" + temp + "', " + std::to_string( result ) + ", " + message );
+
+			if( 0 < message.length() )
+				temp += ", " + message;
+
+			this->_report( temp + ", " + std::to_string( result ) );
 		}
 
 		if( temp == "exit" )
