@@ -6,26 +6,22 @@
 #define LAB4_STACK_THREADSQUAD_H
 
 #include <queue>
-#include <vector>
 #include <list>
 #include <mutex>
-#include "ThreadGuard.h"
-
-using	std::queue;
-using	std::list;
+#include <ThreadGuard.h>
 
 class ThreadSquad {
 public:
-	typedef function< void( void ) >	Task;
+	typedef std::function< void( void ) >	Task;
 
 private:
-	typedef ThreadGuard<>	Member;
-	typedef	list< Member >	Squad;
-	typedef queue< Task >	Schedule;
+	typedef ThreadGuard<>							Member;
+	typedef	std::list< Member >						Squad;
+	typedef std::queue< Task, std::list< Task > >	Schedule;
 
 	Schedule	_tasks;
 	Squad		_team;
-	mutex		_tasksMutex;
+	std::mutex	_tasksMutex;
 
 	ThreadSquad( const ThreadSquad & source ) = delete;
 	ThreadSquad( ThreadSquad && source ) = delete;
@@ -49,7 +45,7 @@ public:
 };
 
 const size_t ThreadSquad::_threadsCount( void ) {
-	const size_t	amount( thread::hardware_concurrency() );
+	const size_t	amount( std::thread::hardware_concurrency() );
 
 	return amount < 2 ? 2 : amount;
 }
