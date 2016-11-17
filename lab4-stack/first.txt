@@ -1,0 +1,13 @@
+push 0
+push 1
+push 2
+wait 1
+pop
+top
+push 3
+push 4
+wait 2
+pop
+top
+pop
+top
