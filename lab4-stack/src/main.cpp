@@ -4,6 +4,7 @@
 
 #include <iostream>
 #include <ThreadSquad.h>
+#include <Executor.h>
 
 using	std::cout;
 using	std::endl;
@@ -21,6 +22,13 @@ void someFunc( char a, __time_t value ) {
 	cout << a << " started: " << getMoment() - value << endl;
 	nanosleep( &period, NULL );
 	cout << a << " finished: " << getMoment() - value << endl;
+}
+
+int write( istream & input, string & message ) {
+	string temp;
+	input >> temp;
+	message = "Read from input '" + temp + "'";
+	return 0;
 }
 
 int main( int argc, char *argv[] ) {
@@ -53,8 +61,14 @@ int main( int argc, char *argv[] ) {
 		cout << a << " finished: " << getMoment() - value << endl;
 	} );
 	guard.Run( '9', allStart );
+	guard.StopWait();
 
 	cout << "All got: " << getMoment() - allStart << endl;
+
+	Executor< int >	executor;
+
+	executor.AddRoutine( "write", write );
+	executor.Run();
 
 	return 0;
 }
