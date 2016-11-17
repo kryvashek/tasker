@@ -35,7 +35,7 @@ public:
 	ThreadGuard( const Duty & duty );
 	ThreadGuard( ThreadGuard && source );
 	~ThreadGuard( void );
-	ThreadGuard & operator=( ThreadGuard && source );
+	const ThreadGuard & operator=( ThreadGuard && source );
 	inline const bool Busy( void ) const;
 	inline const bool IsEnded( void ) const;
 	bool Set( const Duty & newDuty );
@@ -54,6 +54,7 @@ inline void ThreadGuard< Types ... >::_setEnded( const bool value ) {
 
 template< class... Types >
 inline void ThreadGuard< Types ... >::_setFields( const Duty & newDuty, Worker * newWorker, const bool status ) {
+	this->StopWait();
 	this->_setEnded( false );
 	this->_duty = newDuty;
 	this->_worker = newWorker;
@@ -111,8 +112,7 @@ ThreadGuard< Types ... >::~ThreadGuard( void ) {
 }
 
 template< class... Types >
-ThreadGuard< Types ... > & ThreadGuard< Types ... >::operator=( ThreadGuard && source ) {
-	this->StopWait();
+const ThreadGuard< Types ... > & ThreadGuard< Types ... >::operator=( ThreadGuard && source ) {
 	this->_setFields( source._duty, source._worker, source.IsEnded() );
 	source._setFields( ThreadGuard::_mock, NULL, true );
 	return *this;
