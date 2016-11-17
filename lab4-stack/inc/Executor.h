@@ -105,7 +105,7 @@ const Executor< ResType, ArgTypes... > & Executor< ResType, ArgTypes... >::opera
 
 template< typename ResType, class... ArgTypes >
 const Executor< ResType, ArgTypes... > & Executor< ResType, ArgTypes... >::operator+=( const Executor & source ) {
-	Coverage::const_iterator	from;
+	typename Executor< ResType, ArgTypes... >::Coverage::const_iterator	from;
 
 	for( from = source._scope.begin(); from != source._scope.end(); from++ )
 		this->_scope[ from->first ] = from->second;
