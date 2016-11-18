@@ -1,13 +1,14 @@
-push 11
-push 13
-wait 0 500000000
+push 31
+push 33
+write Hello!
 top
-pop
 top
-pop
-push 15
-push 17
-push 19
-wait 0 500000001
+push 35
+push 37
+push 39
+write Some_long_enough_message_to_take_some_time_while_outputing_it_to_perform_a_kind_of_delay
 top
-pop
+push 32
+push 38
+write Bye-bye!
+top

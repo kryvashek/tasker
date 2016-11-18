@@ -1,13 +1,12 @@
-push 5
-push 6
-wait 2 0
+push 25
+push 26
+count 1 2 11
 top
-pop
 top
-pop
-push 7
-push 8
-push 9
-wait 1 0
+push 27
+push 28
+push 29
 top
-pop
+push 21
+count 1 1 4
+top

@@ -1,13 +1,13 @@
-push 0
-push 1
-push 2
+push 10
+push 11
+push 12
 wait 1 0
-pop
 top
-push 3
-push 4
+push 13
+push 14
 wait 2 0
-pop
 top
-pop
+top
+push 15
+wait 0 500000
 top
