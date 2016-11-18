@@ -20,11 +20,11 @@ void stay( int secs, int nsecs ) {
 }
 
 int count( istream & input, string & message, SafeStack< int > & locker ) {
-	int	start, step, finish;
+	int	start, step, finish, counter;
 
 	input >> start >> step >> finish;
-	for( ; start < finish; start += step ) {
-		cout << start << endl;
+	for( counter = start; counter < finish; counter += step ) {
+		cout << counter << endl;
 		stay( 0, static_cast< unsigned long >( 5e8 ) );
 	}
 	message = std::to_string( start ) + ", " + std::to_string( step ) + ", " + std::to_string( finish );
