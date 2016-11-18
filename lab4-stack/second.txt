@@ -1,6 +1,6 @@
 push 5
 push 6
-wait 2
+wait 2 0
 top
 pop
 top
@@ -8,6 +8,6 @@ pop
 push 7
 push 8
 push 9
-wait 1
+wait 1 0
 top
 pop
