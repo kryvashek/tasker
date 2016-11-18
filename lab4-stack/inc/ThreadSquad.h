@@ -30,8 +30,7 @@ private:
 
 	static const size_t _threadsCount( void );
 	static const size_t _threadsCountOptimum( const size_t amount );
-	inline const Task _getTask( void );
-	inline const bool _hasTasks( void );
+	inline const bool _getTask( Task & task );
 
 public:
 	ThreadSquad( void );
@@ -56,19 +55,15 @@ const size_t ThreadSquad::_threadsCountOptimum( const size_t amount ) {
 	return optimal < amount ? optimal : amount;
 }
 
-inline const ThreadSquad::Task ThreadSquad::_getTask( void ) {
+inline const bool ThreadSquad::_getTask( ThreadSquad::Task & task ) {
 	this->_tasksMutex.lock();
-	const Task	temp( this->_tasks.front() );
-	this->_tasks.pop();
+	const bool	has( !this->_tasks.empty() );
+	if( has ) {
+		task = move( this->_tasks.front() );
+		this->_tasks.pop();
+	}
 	this->_tasksMutex.unlock();
-	return temp;
-}
-
-inline const bool ThreadSquad::_hasTasks( void ) {
-	this->_tasksMutex.lock();
-	const bool	temp( this->_tasks.empty() );
-	this->_tasksMutex.unlock();
-	return !temp;
+	return has;
 }
 
 ThreadSquad::ThreadSquad( void ) :
@@ -99,8 +94,9 @@ void ThreadSquad::Run( void ) {
 
 	for( member = this->_team.begin(); member !=  this->_team.end(); member++ )
 		member->Run( [ this ]( void ) mutable {
-			while( this->_hasTasks() )
-				this->_getTask()();
+			ThreadSquad::Task	task;
+			while( this->_getTask( task ) )
+				task();
 		} );
 }
 
