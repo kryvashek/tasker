@@ -101,6 +101,7 @@ Executor< ResType, ArgTypes... >::~Executor( void ) {
 template< typename ResType, class... ArgTypes >
 const Executor< ResType, ArgTypes... > & Executor< ResType, ArgTypes... >::operator=( const Executor & source ) {
 	this->_scope = source._scope;
+	this->_report( "Scope copied" );
 }
 
 template< typename ResType, class... ArgTypes >
@@ -109,6 +110,8 @@ const Executor< ResType, ArgTypes... > & Executor< ResType, ArgTypes... >::opera
 
 	for( from = source._scope.begin(); from != source._scope.end(); from++ )
 		this->_scope[ from->first ] = from->second;
+
+	this->_report( "Scope appended" );
 }
 
 template< typename ResType, class... ArgTypes >
