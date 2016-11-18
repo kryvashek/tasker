@@ -39,8 +39,8 @@ public:
 	inline const bool Busy( void ) const;
 	inline const bool IsEnded( void ) const;
 	bool Set( const Duty & newDuty );
-	void Run( Types ... values );
-	void Run( const Duty & newDuty, Types ... values );
+	void Run( Types && ... values );
+	void Run( const Duty & newDuty, Types && ... values );
 	inline const bool StopTry( void );
 	inline const bool StopWait( void );
 };
@@ -141,18 +141,18 @@ bool ThreadGuard< Types ... >::Set( const Duty & newDuty ) {
 }
 
 template< class... Types >
-void ThreadGuard< Types ... >::Run( Types ... values ) {
+void ThreadGuard< Types ... >::Run( Types && ... values ) {
 	if( !this->Busy() ) {
 		this->_setEnded( false );
-		this->_worker = new Worker( [ & ]( void ) mutable {
-			this->_duty( values ... );
+		this->_worker = new Worker( [ = ]( void ) mutable {
+			this->_duty( std::forward< Types >( values ) ... );
 			this->_setEnded( true );
 		} );
 	}
 }
 
 template< class... Types >
-void ThreadGuard< Types ... >::Run( const Duty & newDuty, Types ... values ) {
+void ThreadGuard< Types ... >::Run( const Duty & newDuty, Types && ... values ) {
 	if( this->Set( newDuty ) )
 		this->Run( values ... );
 }
