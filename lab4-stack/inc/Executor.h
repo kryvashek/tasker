@@ -143,6 +143,9 @@ void Executor< ResType, ArgTypes... >::Run( ArgTypes ... values ) {
 	while( this->_input.good() ) {
 		this->_input >> temp;
 
+		if( 0 == temp.length() )
+			continue;
+
 		if( 0 == this->_scope.count( temp ) )
 			this->_report( "Unknown '" + temp + "'" );
 		else {
@@ -157,6 +160,8 @@ void Executor< ResType, ArgTypes... >::Run( ArgTypes ... values ) {
 
 		if( temp == "exit" )
 			break;
+
+		temp.clear();
 	}
 }
 
