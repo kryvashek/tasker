@@ -1,15 +1,14 @@
-#include <iostream>
+#include <fstream>
 #include <list>
 #include <random>
 #include <iostream>
+#include <future>
 
 template< typename Data, typename InputIter, class Storage = std::list< Data > >
 Storage parQsort( InputIter from, InputIter till ) {
-	Storage		morequal,
-				less;
-	InputIter	prev,
-				current;
-	size_t 		ranger;
+	Storage					morequal, less;
+	InputIter				prev, current;
+	size_t 					ranger;
 
 	if( from == till )
 		return morequal;
@@ -33,8 +32,15 @@ Storage parQsort( InputIter from, InputIter till ) {
 		else
 			morequal.push_back( *current );
 
-	less = parQsort< Data >( less.begin(), less.end() );
-	morequal = parQsort< Data >( morequal.begin(), morequal.end() );
+	{
+		std::future< Storage >	fLess, fMorequal;
+
+		fLess = std::async( [ &less ]( void ) { return parQsort< Data >( less.begin(), less.end() ); } );
+		fMorequal = std::async( [ &morequal ]( void ) { return parQsort< Data >( morequal.begin(), morequal.end() ); } );
+		less = fLess.get();
+		morequal = fMorequal.get();
+	}
+
 	less.insert( less.end(), *pivot );
 	less.insert( less.end(), morequal.begin(), morequal.end() );
 
@@ -43,25 +49,21 @@ Storage parQsort( InputIter from, InputIter till ) {
 
 int main() {
 	std::list< int >	source;
-	int					count, index;
+	int					index;
+	std::fstream		output( "output.txt" );
 
-	for( int stage = 1; stage <= 10; stage++ ) {
-		count = std::rand() % 30;
-
-		for( index = 0; index < count; index++ ) {
-			source.push_back( std::rand() % 100 );
-			std::cout << source.back() << " ";
-		}
-
-		std::cout << std::endl;
-		source = parQsort< int >( source.begin(), source.end() );
-
-		for( auto cur = source.begin(); cur != source.end(); cur++ )
-			std::cout << *cur << " ";
-
-		std::cout << std::endl << std::endl;
-		source.clear();
+	for( index = 0; index < 1000000; index++ ) {
+		source.push_back( std::rand() % 100 );
+		output << source.back() << " ";
 	}
+
+	output << std::endl;
+	source = parQsort< int >( source.begin(), source.end() );
+
+	for( auto cur = source.begin(); cur != source.end(); cur++ )
+		output << *cur << " ";
+
+	output << std::endl;
 
 	return 0;
 }
