@@ -3,17 +3,31 @@
 #include <random>
 #include <iostream>
 #include <future>
+#include <algorithm>
 
-template< typename Data, typename InputIter, class Storage = std::list< Data > >
-Storage parQsort( InputIter from, InputIter till ) {
-	Storage					morequal, less;
-	InputIter				prev, current;
-	size_t 					ranger;
+int optimalThreads( void ) {
+	const int	system( std::thread::hardware_concurrency() );
+	return system > 1 ? system : 2;
+}
 
-	if( from == till )
-		return morequal;
+template< class Data >
+void parQsort( std::list< Data > & storage ) {
+	static std::mutex	cntMutex;
+	static int 			cnt = 0;
 
-	for( ranger = 256, current = from; current != till; current++ )
+	typename std::list< Data >::const_iterator	prev, current;
+
+	std::list< Data >	more;
+	size_t 				ranger;
+
+	cntMutex.lock();
+	const int curCnt( ++cnt );
+	cntMutex.unlock();
+
+	if( storage.empty() )
+		return;
+/*
+	for( ranger = 256, current = storage.begin(); current != storage.end(); current++ )
 		if( 0 < std::rand() % ranger ) {
 			prev = current;
 
@@ -22,43 +36,45 @@ Storage parQsort( InputIter from, InputIter till ) {
 		} else
 			break;
 
-	const InputIter	pivot( current == till ? prev : current );
+	const Data	& pivot( current == storage.end() ? *prev : *current );
+ */
+	const Data	& pivot( storage.front() );
 
-	for( current = from; current != till; current++ )
-		if( pivot == current )
-			continue;
-		else if( *pivot > *current )
-			less.push_back( *current );
-		else
-			morequal.push_back( *current );
+	current = std::partition( storage.begin(), storage.end(), [ pivot ]( Data & value ) { return value < pivot; } );
+	more.splice( more.begin(), storage, current, storage.end() );
 
-	{
-		std::future< Storage >	fLess, fMorequal;
+	if( curCnt < optimalThreads() ) {
+		std::future< bool > moreSorted( std::async( [ &more ]( void ) {
+			parQsort( more );
+			return true;
+		} ) );
 
-		fLess = std::async( [ &less ]( void ) { return parQsort< Data >( less.begin(), less.end() ); } );
-		fMorequal = std::async( [ &morequal ]( void ) { return parQsort< Data >( morequal.begin(), morequal.end() ); } );
-		less = fLess.get();
-		morequal = fMorequal.get();
+		parQsort( storage );
+		moreSorted.get();
+	} else {
+		parQsort( storage );
+		parQsort( more );
 	}
 
-	less.insert( less.end(), *pivot );
-	less.insert( less.end(), morequal.begin(), morequal.end() );
+	storage.splice( storage.end(), more, more.begin(), more.end() );
 
-	return less;
+	cntMutex.lock();
+	cnt--;
+	cntMutex.unlock();
 };
 
 int main() {
 	std::list< int >	source;
 	int					index;
-	std::fstream		output( "output.txt" );
+	std::ofstream		output( "output.txt" );
 
-	for( index = 0; index < 1000000; index++ ) {
+	for( index = 0; index < 256; index++ ) {
 		source.push_back( std::rand() % 100 );
 		output << source.back() << " ";
 	}
 
 	output << std::endl;
-	source = parQsort< int >( source.begin(), source.end() );
+	parQsort( source );
 
 	for( auto cur = source.begin(); cur != source.end(); cur++ )
 		output << *cur << " ";
