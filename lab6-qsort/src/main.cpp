@@ -67,7 +67,7 @@ private:
 			std::swap( *current, *last );
 
 		const Data	& pivot( *last );
-		const Iter	edge = std::partition( from, till, [ &pivot ]( const Data & value ) { return value < pivot; } );
+		const Iter	edge = std::partition( from, last, [ &pivot ]( const Data & value ) { return value < pivot; } );
 
 		if( this->countCheck() ) {
 			std::future< void > parallel = std::async( std::launch::async, [ & ]( void ) { ( *this )( edge, till ); } );
@@ -99,7 +99,7 @@ int main() {
 	int							index;
 	std::ofstream				output( "output.txt" );
 
-	for( index = 0; index < 1000000; index++ ) {
+	for( index = 0; index < 3000000; index++ ) {
 		source.push_back( std::rand() % 100 );
 		output << source.back() << " ";
 	}
