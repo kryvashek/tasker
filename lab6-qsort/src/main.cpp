@@ -1,80 +1,111 @@
 #include <fstream>
 #include <list>
 #include <random>
-#include <iostream>
 #include <future>
 #include <algorithm>
+#include <mutex>
 
-int optimalThreads( void ) {
-	const int	system( std::thread::hardware_concurrency() );
-	return system > 1 ? system : 2;
-}
+template< typename Storage >
+void parQsort( typename Storage::iterator first, typename Storage::iterator last );
 
-template< class Data >
-void parQsort( std::list< Data > & storage ) {
-	static std::mutex	cntMutex;
-	static int 			cnt = 0;
+template< class Storage >
+class Sorter {
+private:
+	typedef std::lock_guard< std::mutex >	MutexGuard;
+	typedef unsigned int					ThreadsCount;
+	typedef typename Storage::value_type	Data;
+	typedef typename Storage::iterator		Iter;
 
-	typename std::list< Data >::const_iterator	prev, current;
+	mutable std::mutex		cntMutex;
+	volatile ThreadsCount	count;
 
-	std::list< Data >	more;
-	size_t 				ranger;
+	Sorter( const Sorter & source ) = delete;
+	Sorter( Sorter && source ) = delete;
 
-	cntMutex.lock();
-	const int curCnt( ++cnt );
-	cntMutex.unlock();
-
-	if( storage.empty() )
-		return;
-/*
-	for( ranger = 256, current = storage.begin(); current != storage.end(); current++ )
-		if( 0 < std::rand() % ranger ) {
-			prev = current;
-
-			if( 2 < ranger )
-				ranger /= 2;
-		} else
-			break;
-
-	const Data	& pivot( current == storage.end() ? *prev : *current );
- */
-	const Data	& pivot( storage.front() );
-
-	current = std::partition( storage.begin(), storage.end(), [ pivot ]( Data & value ) { return value < pivot; } );
-	more.splice( more.begin(), storage, current, storage.end() );
-
-	if( curCnt < optimalThreads() ) {
-		std::future< bool > moreSorted( std::async( [ &more ]( void ) {
-			parQsort( more );
-			return true;
-		} ) );
-
-		parQsort( storage );
-		moreSorted.get();
-	} else {
-		parQsort( storage );
-		parQsort( more );
+	static ThreadsCount threadsOptimal( void ) {
+		const ThreadsCount	system( std::thread::hardware_concurrency() );
+		return system > 1 ? system : 2;
 	}
 
-	storage.splice( storage.end(), more, more.begin(), more.end() );
+	void countUp( void ) {
+		MutexGuard	guard( this->cntMutex );
+		count++;
+	}
 
-	cntMutex.lock();
-	cnt--;
-	cntMutex.unlock();
+	void countDown( void ) {
+		MutexGuard	guard( this->cntMutex );
+		count--;
+	}
+
+	bool countCheck( void ) const {
+		MutexGuard	guard( this->cntMutex );
+		return this->count > 0;
+	}
+
+	void operator()( typename Storage::iterator from, typename Storage::iterator till ) {
+		Iter	current, last( till );
+		size_t	ranger;
+
+		last--;
+
+		if( till == from || last == from )
+			return;
+
+		this->countDown();
+
+		for( ranger = 256, current = from; current != till; current++ )
+			if( 0 < std::rand() % ranger ) {
+				if( 2 < ranger )
+					ranger /= 2;
+			} else
+				break;
+
+		if( current == till )
+			current = last;
+
+		if( current != last )
+			std::swap( *current, *last );
+
+		const Data	& pivot( *last );
+		const Iter	edge = std::partition( from, till, [ &pivot ]( const Data & value ) { return value < pivot; } );
+
+		if( this->countCheck() ) {
+			std::future< void > parallel = std::async( std::launch::async, [ & ]( void ) { ( *this )( edge, till ); } );
+			( *this )( from, edge );
+			parallel.wait();
+		} else {
+			( *this )( from, edge );
+			( *this )( edge, till );
+		}
+		this->countUp();
+	}
+
+public:
+	Sorter( void ) : count( Sorter::threadsOptimal() ) {};
+
+	friend void parQsort< Storage >( typename Storage::iterator first, typename Storage::iterator last );
+};
+
+template< typename Storage >
+void parQsort( typename Storage::iterator first, typename Storage::iterator last ) {
+	Sorter< Storage >	sorter;
+
+	sorter( first, last );
 };
 
 int main() {
-	std::list< int >	source;
-	int					index;
-	std::ofstream		output( "output.txt" );
+	typedef std::list< int >	Container;
+	Container 					source;
+	int							index;
+	std::ofstream				output( "output.txt" );
 
-	for( index = 0; index < 256; index++ ) {
+	for( index = 0; index < 1000000; index++ ) {
 		source.push_back( std::rand() % 100 );
 		output << source.back() << " ";
 	}
 
 	output << std::endl;
-	parQsort( source );
+	parQsort< Container >( source.begin(), source.end() );
 
 	for( auto cur = source.begin(); cur != source.end(); cur++ )
 		output << *cur << " ";
