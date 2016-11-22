@@ -4,6 +4,8 @@
 #include <future>
 #include <algorithm>
 #include <mutex>
+#include <iostream>
+#include <chrono>
 
 template< typename Storage >
 void parQsort( typename Storage::iterator first, typename Storage::iterator last );
@@ -93,24 +95,50 @@ void parQsort( typename Storage::iterator first, typename Storage::iterator last
 	sorter( first, last );
 };
 
+using namespace std::chrono;
+
 int main() {
 	typedef std::list< int >	Container;
-	Container 					source;
-	int							index;
-	std::ofstream				output( "output.txt" );
 
-	for( index = 0; index < 3000000; index++ ) {
+	Container 		source;
+	int				index, count;
+	std::string		filename;
+	std::ofstream	output;
+
+	steady_clock::time_point	start, finish;
+
+	std::cout << "Enter sequence length: ";
+	std::cin >> count;
+	std::cout << "Enter output file name: ";
+	std::cin >> filename;
+
+	if( 0 == filename.length() )
+		filename == "output.txt";
+
+	std::cout << "Generating " << count << " random values... ";
+
+	for( index = 0; index < count; index++ )
 		source.push_back( std::rand() % 100 );
-		output << source.back() << " ";
-	}
 
-	output << std::endl;
-	parQsort< Container >( source.begin(), source.end() );
+	std::cout << " done." << std::endl << "Writing random values into the file... ";
+	output.open( filename );
 
 	for( auto cur = source.begin(); cur != source.end(); cur++ )
 		output << *cur << " ";
 
 	output << std::endl;
+	std::cout << " done." << std::endl << "Sorting the sequence... ";
+	start = steady_clock::now();
+	parQsort< Container >( source.begin(), source.end() );
+	finish = steady_clock::now();
+	std::cout << " done, took " << duration_cast< milliseconds >( finish - start ).count() << " ms." << std::endl;
+	std::cout << "Writing sorted values into the file... ";
+
+	for( auto cur = source.begin(); cur != source.end(); cur++ )
+		output << *cur << " ";
+
+	output << std::endl;
+	std::cout << " done." << std::endl << "Exiting program... " << std::endl;
 
 	return 0;
 }
