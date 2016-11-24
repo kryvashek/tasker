@@ -13,13 +13,13 @@ void parQsort( typename Storage::iterator first, typename Storage::iterator last
 template< class Storage >
 class Sorter {
 private:
-	typedef std::lock_guard< std::mutex >	MutexGuard;
 	typedef unsigned int					ThreadsCount;
+	typedef std::lock_guard< std::mutex >	MutexGuard;
 	typedef typename Storage::value_type	Data;
 	typedef typename Storage::iterator		Iter;
 
-	mutable std::mutex		cntMutex;
-	volatile ThreadsCount	count;
+	std::mutex		cntMutex;
+	ThreadsCount	count;
 
 	Sorter( const Sorter & source ) = delete;
 	Sorter( Sorter && source ) = delete;
@@ -31,65 +31,63 @@ private:
 
 	void countUp( void ) {
 		MutexGuard	guard( this->cntMutex );
-		count++;
+		this->count++;
 	}
 
-	void countDown( void ) {
+	bool countDownCheck( void ) {
 		MutexGuard	guard( this->cntMutex );
-		count--;
+		if( this->count == 0 )
+			return false;
+		this->count--;
+		return true;
 	}
 
-	bool countCheck( void ) const {
-		MutexGuard	guard( this->cntMutex );
-		return this->count > 0;
-	}
-
-	void operator()( typename Storage::iterator from, typename Storage::iterator till ) {
-		Iter	current, last( till );
-		size_t	ranger;
+	void operator()( const typename Storage::iterator from, const typename Storage::iterator till ) {
+		Iter	last( till ), next( from );
 
 		last--;
 
-		if( till == from || last == from )
+		if( till == from || last == from ) // if there is no elements or only one in the container
 			return;
 
-		this->countDown();
+		next++;
 
-		for( ranger = 256, current = from; current != till; current++ )
-			if( 0 < std::rand() % ranger ) {
-				if( 2 < ranger )
-					ranger /= 2;
-			} else
-				break;
+		if( next == last ) { // if there are two elements in the container
+			if( *next > *last )	// if they need some sorting
+				std::swap( *next, *last ); // perform proper simple sorting
 
-		if( current == till )
-			current = last;
-
-		if( current != last )
-			std::swap( *current, *last );
-
-		const Data	& pivot( *last );
-		const Iter	edge = std::partition( from, last, [ &pivot ]( const Data & value ) { return value < pivot; } );
-
-		if( this->countCheck() ) {
-			std::future< void > parallel = std::async( std::launch::async, [ & ]( void ) { ( *this )( edge, till ); } );
-			( *this )( from, edge );
-			parallel.wait();
-		} else {
-			( *this )( from, edge );
-			( *this )( edge, till );
+			return; // they are already sorted
 		}
-		this->countUp();
+
+		const Iter	edgeLeft = std::partition( from, last, [ & ]( const Data & value ) { return value < *last; } );
+
+		if( edgeLeft != last )
+			std::swap( *edgeLeft, *last );
+
+		next = edgeLeft;
+		next++;
+
+		const Iter	edgeRight = std::partition( next, till, [ & ]( const Data & value ) { return value == *edgeLeft; } );
+
+		if( this->countDownCheck() ) {
+			std::future< void > parallel = std::async( std::launch::async, [ & ]( void ) { ( *this )( edgeRight, till ); } );
+			( *this )( from, edgeLeft );
+			parallel.wait();
+			this->countUp();
+		} else {
+			( *this )( from, edgeLeft );
+			( *this )( edgeRight, till );
+		}
 	}
 
 public:
 	Sorter( void ) : count( Sorter::threadsOptimal() ) {};
 
-	friend void parQsort< Storage >( typename Storage::iterator first, typename Storage::iterator last );
+	friend void parQsort< Storage >( const typename Storage::iterator first, const typename Storage::iterator last );
 };
 
 template< typename Storage >
-void parQsort( typename Storage::iterator first, typename Storage::iterator last ) {
+void parQsort( const typename Storage::iterator first, const typename Storage::iterator last ) {
 	Sorter< Storage >	sorter;
 
 	sorter( first, last );
@@ -116,11 +114,13 @@ int main() {
 		filename == "output.txt";
 
 	std::cout << "Generating " << count << " random values... ";
+	std::cout.flush();
 
 	for( index = 0; index < count; index++ )
 		source.push_back( std::rand() % 100 );
 
 	std::cout << " done." << std::endl << "Writing random values into the file... ";
+	std::cout.flush();
 	output.open( filename );
 
 	for( auto cur = source.begin(); cur != source.end(); cur++ )
@@ -128,11 +128,13 @@ int main() {
 
 	output << std::endl;
 	std::cout << " done." << std::endl << "Sorting the sequence... ";
+	std::cout.flush();
 	start = steady_clock::now();
 	parQsort< Container >( source.begin(), source.end() );
 	finish = steady_clock::now();
 	std::cout << " done, took " << duration_cast< milliseconds >( finish - start ).count() << " ms." << std::endl;
 	std::cout << "Writing sorted values into the file... ";
+	std::cout.flush();
 
 	for( auto cur = source.begin(); cur != source.end(); cur++ )
 		output << *cur << " ";
