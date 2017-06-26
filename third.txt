@@ -1,0 +1,14 @@
+push 31
+push 33
+write Hello!
+top
+top
+push 35
+push 37
+push 39
+write Some_long_enough_message_to_take_some_time_while_outputing_it_to_perform_a_kind_of_delay
+top
+push 32
+push 38
+write Bye-bye!
+top

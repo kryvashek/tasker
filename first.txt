@@ -1,0 +1,13 @@
+push 10
+push 11
+push 12
+wait 1 0
+top
+push 13
+push 14
+wait 2 0
+top
+top
+push 15
+wait 0 500000
+top
